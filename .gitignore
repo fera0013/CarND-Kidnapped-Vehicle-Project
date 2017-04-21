@@ -20,3 +20,4 @@ particle_filter.cpp
 *.vcxproj
 *.filters
 *.htm
+*.opendb

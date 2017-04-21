@@ -55,7 +55,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	}
 }
 
-void ParticleFilter::dataAssociation(const std::vector<Map::single_landmark_s>& transformedLandmarks, std::vector<LandmarkObs>& observations) {
+void ParticleFilter::dataAssociation(std::vector<LandmarkObs> transformedLandmarks, std::vector<LandmarkObs>& observations) {
 	// TODO: Find the predicted measurement that is closest to each observed measurement and assign the 
 	//   observed measurement to this particular landmark.
 	// NOTE: this method will NOT be called by the grading code. But you will probably find it useful to 
@@ -65,10 +65,12 @@ void ParticleFilter::dataAssociation(const std::vector<Map::single_landmark_s>& 
 		unsigned int minDistance = std::numeric_limits<unsigned int>::max();
 		for (auto observation : observations)
 		{
-			auto dist = calculateDistance(landmark.x_f, landmark.y_f, observation.x, observation.y);
+			//ToDo: The distance should be calculated by an inline function, which cannot be implemented since
+			//the particle_filter.h must not be change, according to Udacity rules
+			auto dist = abs(observation.x - landmark.x) + abs(observation.y - landmark.y);
 			if (dist < minDistance)
 			{
-				observation.id = landmark.id_i;
+				observation.id = landmark.id;
 				minDistance = dist;
 			}
 		}
@@ -94,21 +96,23 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	{
 		//ToDo: Refactor dataAssociation to a generic templace function working on iterators
 		//to prevent doubling of landmark containers
-		std::vector<Map::single_landmark_s> v_LandmarksWithinSensorRange;
+		std::vector<LandmarkObs> v_LandmarksWithinSensorRange;
 		std::map<int, Map::single_landmark_s> m_LandmarksWithinSensorRange;
 		std::vector<LandmarkObs> v_transformedObservations; 
 		for (auto observation : observations)
 		{
-			transformObservationsToMapSpace(observation, particle);
+			//Transform observation to particle/map space
+			observation.x = observation.x*cos(particle.theta) + observation.y*sin(particle.theta) + particle.x;
+			observation.y = observation.x*sin(particle.theta) + observation.y*cos(particle.theta) + particle.y;
 			v_transformedObservations.push_back(observation);
 		}
 		//Only consider landmarks within sensor range of the particle
 		for (auto landmark : map_landmarks.landmark_list)
 		{
-			auto dist = calculateDistance(particle.x, particle.y, landmark.x_f, landmark.y_f);
+			auto dist = abs(particle.x - landmark.x_f) + abs(particle.y - landmark.y_f);
 			if (dist <= sensor_range)
 			{
-				v_LandmarksWithinSensorRange.push_back(landmark);
+				v_LandmarksWithinSensorRange.push_back(LandmarkObs{ landmark.id_i,landmark.x_f,landmark.y_f });
 				m_LandmarksWithinSensorRange.insert(std::make_pair(landmark.id_i, landmark));
 			}
 		}
