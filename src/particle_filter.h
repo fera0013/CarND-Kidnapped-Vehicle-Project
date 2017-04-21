@@ -8,7 +8,7 @@
 
 #ifndef PARTICLE_FILTER_H_
 #define PARTICLE_FILTER_H_
-
+#include <math.h>
 #include "helper_functions.h"
 
 struct Particle {
@@ -75,7 +75,8 @@ public:
 	 * @param predicted Vector of predicted landmark observations
 	 * @param observations Vector of landmark observations
 	 */
-	void dataAssociation(std::vector<LandmarkObs> predicted, std::vector<LandmarkObs>& observations);
+
+	void dataAssociation(const std::vector<Map::single_landmark_s>&, std::vector<LandmarkObs>& observations);
 	
 	/**
 	 * updateWeights Updates the weights for each particle based on the likelihood of the 
@@ -100,6 +101,20 @@ public:
 	 * @param filename File to write particle positions to.
 	 */
 	void write(std::string filename);
+
+	double inline calculateDistance(double point1x,
+		double point1y,
+		double point2x,
+		double point2y)
+	{
+		return abs(point2x - point1x) + abs(point2y - point1y);
+	}
+
+	void inline transformObservationsToMapSpace(LandmarkObs& observation, Particle particle)
+	{
+		observation.x = observation.x*cos(particle.theta) + observation.y*sin(particle.theta) + particle.x;
+		observation.y = observation.x*sin(particle.theta) + observation.y*cos(particle.theta) + particle.y;
+	}
 	
 	/**
 	 * initialized Returns whether particle filter is initialized yet or not.
