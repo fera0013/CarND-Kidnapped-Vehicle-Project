@@ -119,7 +119,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		}
 		dataAssociation(v_LandmarksWithinSensorRange, v_transformedObservations);
 
-		for (auto observation : v_transformedObservations)
+		for (const auto& observation : v_transformedObservations)
 		{
 			auto mu_x = m_LandmarksWithinSensorRange[observation.id].x_f;
 			auto mu_y = m_LandmarksWithinSensorRange[observation.id].y_f;
