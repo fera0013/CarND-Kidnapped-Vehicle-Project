@@ -21,3 +21,4 @@ particle_filter.cpp
 *.filters
 *.htm
 *.opendb
+*.zip

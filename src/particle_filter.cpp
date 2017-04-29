@@ -12,8 +12,8 @@
 #include "particle_filter.h"
 #include <assert.h>
 #include <map>
-#include "Eigen/Dense"
 
+constexpr float PI = 3.14159265358979323846;
 
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// TODO: Set the number of particles. Initialize all particles to first position (based on estimates of 
@@ -25,7 +25,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	std::normal_distribution<double> dist_x(x, std[0]);
 	std::normal_distribution<double> dist_y(y, std[1]);
 	std::normal_distribution<double> dist_theta(theta, std[2]);
-	num_particles = 1000;
+	num_particles = 100;
 	for (int i = 0; i < num_particles; i++)
 	{
 		particles.push_back(Particle{ i,dist_x(gen) ,dist_y(gen),dist_theta(gen),1 });
@@ -60,13 +60,14 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> transformedLandmar
 	//   observed measurement to this particular landmark.
 	// NOTE: this method will NOT be called by the grading code. But you will probably find it useful to 
 	//   implement this method and use it as a helper during the updateWeights phase.
-	for (auto landmark : transformedLandmarks)
+	
+	
+	for (auto& observation:observations)
 	{
 		unsigned int minDistance = std::numeric_limits<unsigned int>::max();
-		for (auto observation : observations)
+		for (auto landmark : transformedLandmarks)
 		{
-			//ToDo: The distance should be calculated by an inline function, which cannot be implemented since
-			//the particle_filter.h must not be change, according to Udacity rules
+			//ToDo: The distance should be calculated using an inline function
 			auto dist = abs(observation.x - landmark.x) + abs(observation.y - landmark.y);
 			if (dist < minDistance)
 			{
@@ -92,7 +93,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   for the fact that the map's y-axis actually points downwards.)
 	//   http://planning.cs.uiuc.edu/node99.html
 
-	for (auto particle : particles)
+	for (auto& particle:particles)
 	{
 		//ToDo: Refactor dataAssociation to a generic templace function working on iterators
 		//to prevent doubling of landmark containers
@@ -118,25 +119,26 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		}
 		dataAssociation(v_LandmarksWithinSensorRange, v_transformedObservations);
 
-		for (auto observation : observations)
+		for (auto observation : v_transformedObservations)
 		{
-			Eigen::VectorXd x(2);
-			x << observation.x,
-				observation.y;
-			Eigen::VectorXd mu(2);
-			mu << m_LandmarksWithinSensorRange[observation.id].x_f,
-				m_LandmarksWithinSensorRange[observation.id].y_f;
-			Eigen::MatrixXd Sigma(2, 2);
-			Sigma << std_landmark[0], 0,
-				0, std_landmark[1];
-			auto diff = x - mu;
-			auto numerator = exp(-1 / 2 * diff.transpose()*Sigma.inverse()*diff);
-			auto denominator = sqrt((2 * M_PI * Sigma).determinant());
-			particle.weight *= numerator / denominator;
-			weights.push_back(particle.weight);
+			auto mu_x = m_LandmarksWithinSensorRange[observation.id].x_f;
+			auto mu_y = m_LandmarksWithinSensorRange[observation.id].y_f;
+			auto x = observation.x;
+			auto y = observation.y;
+			auto s_x = std_landmark[0];
+			auto s_y = std_landmark[1];
+			auto x_diff = (x - mu_x)* (x - mu_x) / (2 * s_x *s_x);
+			auto y_diff = (y - mu_y)* (y - mu_y) / (2 * s_y *s_y);
+			particle.weight *= 1 / (2 * PI*s_x*s_y)*exp(-(x_diff + y_diff));
 		}
+		weights.push_back(particle.weight);
 	}
-	
+	auto sum_of_weights = 0;
+	for (auto weight : weights)
+	{
+		sum_of_weights += weight;
+	}
+	//assert(sum_of_weights == 1);
 }
 
 void ParticleFilter::resample() {
