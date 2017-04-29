@@ -40,7 +40,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	for (auto particle : particles)
+	for (auto& particle : particles)
 	{
 			particle.x = yaw_rate == 0? velocity*cos(particle.theta)*delta_t:
 				particle.x + velocity / yaw_rate*(sin(particle.theta + yaw_rate*delta_t) - sin(particle.theta));
