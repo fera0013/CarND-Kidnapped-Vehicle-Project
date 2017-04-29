@@ -93,18 +93,18 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	//   for the fact that the map's y-axis actually points downwards.)
 	//   http://planning.cs.uiuc.edu/node99.html
 
-	for (auto& particle:particles)
+	for (auto& particle : particles)
 	{
 		//ToDo: Refactor dataAssociation to a generic templace function working on iterators
 		//to prevent doubling of landmark containers
 		std::vector<LandmarkObs> v_LandmarksWithinSensorRange;
 		std::map<int, Map::single_landmark_s> m_LandmarksWithinSensorRange;
-		std::vector<LandmarkObs> v_transformedObservations; 
+		std::vector<LandmarkObs> v_transformedObservations;
 		for (auto observation : observations)
 		{
 			//Transform observation to particle/map space
 			observation.x = observation.x*cos(particle.theta) + observation.y*sin(particle.theta) + particle.x;
-			observation.y = observation.x*sin(particle.theta) + observation.y*cos(particle.theta) + particle.y;
+			observation.y = observation.x*sin(particle.theta) - observation.y*cos(particle.theta) + particle.y;
 			v_transformedObservations.push_back(observation);
 		}
 		//Only consider landmarks within sensor range of the particle
@@ -133,12 +133,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		}
 		weights.push_back(particle.weight);
 	}
-	auto sum_of_weights = 0;
-	for (auto weight : weights)
-	{
-		sum_of_weights += weight;
-	}
-	//assert(sum_of_weights == 1);
 }
 
 void ParticleFilter::resample() {
