@@ -56,7 +56,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	}
 }
 
-void ParticleFilter::dataAssociation(std::vector<LandmarkObs> transformedLandmarks, std::vector<LandmarkObs>& observations) {
+void ParticleFilter::dataAssociation(std::vector<LandmarkObs> landmarks, std::vector<LandmarkObs>& observations) {
 	// TODO: Find the predicted measurement that is closest to each observed measurement and assign the 
 	//   observed measurement to this particular landmark.
 	// NOTE: this method will NOT be called by the grading code. But you will probably find it useful to 
@@ -66,7 +66,7 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> transformedLandmar
 	for (auto& observation:observations)
 	{
 		unsigned int minDistance = std::numeric_limits<unsigned int>::max();
-		for (const auto& landmark : transformedLandmarks)
+		for (const auto& landmark : landmarks)
 		{
 			//ToDo: The distance should be calculated using an inline function
 			auto dist = abs(observation.x - landmark.x) + abs(observation.y - landmark.y);
