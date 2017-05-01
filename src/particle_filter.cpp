@@ -15,6 +15,13 @@
 
 constexpr float PI = 3.14159265358979323846;
 
+double inline distance(double x1, double y1, double x2, double y2)
+{
+	auto x_dist = x1 - x2;
+	auto y_dist = y1 - y2;
+	return sqrt(x_dist*x_dist + y_dist*y_dist);
+}
+
 void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// TODO: Set the number of particles. Initialize all particles to first position (based on estimates of 
 	//   x, y, theta and their uncertainties from GPS) and all weights to 1. 
@@ -69,7 +76,7 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> landmarks, std::ve
 		for (const auto& landmark : landmarks)
 		{
 			//ToDo: The distance should be calculated using an inline function
-			auto dist = abs(observation.x - landmark.x) + abs(observation.y - landmark.y);
+			auto dist = distance(observation.x,landmark.x, observation.y,landmark.y);
 			if (dist < minDistance)
 			{
 				observation.id = landmark.id;
@@ -98,8 +105,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 	{
 		//ToDo: Refactor dataAssociation to a generic templace function working on iterators
 		//to prevent doubling of landmark containers
-		std::vector<LandmarkObs> v_LandmarksWithinSensorRange;
-		std::map<int, Map::single_landmark_s> m_LandmarksWithinSensorRange;
+		std::vector<LandmarkObs> v_Landmarks;
+		std::map<int, Map::single_landmark_s> m_Landmarks;
 		std::vector<LandmarkObs> v_transformedObservations;
 		for (auto observation : observations)
 		{
@@ -111,19 +118,15 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		//Only consider landmarks within sensor range of the particle
 		for (auto landmark : map_landmarks.landmark_list)
 		{
-			auto dist = abs(particle.x - landmark.x_f) + abs(particle.y - landmark.y_f);
-			if (dist <= sensor_range)
-			{
-				v_LandmarksWithinSensorRange.push_back(LandmarkObs{ landmark.id_i,landmark.x_f,landmark.y_f });
-				m_LandmarksWithinSensorRange.insert(std::make_pair(landmark.id_i, landmark));
-			}
+				v_Landmarks.push_back(LandmarkObs{ landmark.id_i,landmark.x_f,landmark.y_f });
+				m_Landmarks.insert(std::make_pair(landmark.id_i, landmark));
 		}
-		dataAssociation(v_LandmarksWithinSensorRange, v_transformedObservations);
+		dataAssociation(v_Landmarks, v_transformedObservations);
 
 		for (const auto& observation : v_transformedObservations)
 		{
-			auto mu_x = m_LandmarksWithinSensorRange[observation.id].x_f;
-			auto mu_y = m_LandmarksWithinSensorRange[observation.id].y_f;
+			auto mu_x = m_Landmarks[observation.id].x_f;
+			auto mu_y = m_Landmarks[observation.id].y_f;
 			auto x = observation.x;
 			auto y = observation.y;
 			auto s_x = std_landmark[0];
