@@ -111,11 +111,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 		for (auto observation : observations)
 		{
 			//Transform observation to particle/map space
-			observation.x = observation.x*cos(particle.theta) + observation.y*sin(particle.theta) + particle.x;
-			observation.y = observation.x*sin(particle.theta) - observation.y*cos(particle.theta) + particle.y;
+			observation.x = observation.x*cos(particle.theta) - observation.y*sin(particle.theta) + particle.x;
+			observation.y = observation.x*sin(particle.theta) + observation.y*cos(particle.theta) + particle.y;
 			v_transformedObservations.push_back(observation);
 		}
-		//Only consider landmarks within sensor range of the particle
 		for (auto landmark : map_landmarks.landmark_list)
 		{
 				v_Landmarks.push_back(LandmarkObs{ landmark.id_i,landmark.x_f,landmark.y_f });
