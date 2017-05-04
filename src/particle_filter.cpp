@@ -148,15 +148,8 @@ void ParticleFilter::resample() {
 	std::discrete_distribution<> discrete_distribution(weights.begin(),weights.end());
 	for (int n = 0; n<num_particles; ++n) 
 	{
-		 auto sampled_weight = discrete_distribution(gen);
-		 for (auto particle : particles)
-		 {
-			 if (sampled_weight == particle.weight)
-			 {
-				 sampled_particles.push_back(particle);
-				 break;
-			 }
-		 }
+		 auto sampled_index = discrete_distribution(gen);
+		 sampled_particles.push_back(particles[sampled_index]);
 	}
 	weights.clear();
 	particles = sampled_particles;
