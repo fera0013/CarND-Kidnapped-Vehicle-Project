@@ -75,8 +75,7 @@ void ParticleFilter::dataAssociation(std::vector<LandmarkObs> landmarks, std::ve
 		unsigned int minDistance = std::numeric_limits<unsigned int>::max();
 		for (const auto& landmark : landmarks)
 		{
-			//ToDo: The distance should be calculated using an inline function
-			auto dist = distance(observation.x,landmark.x, observation.y,landmark.y);
+			auto dist = distance(observation.x,observation.y, landmark.x, landmark.y);
 			if (dist < minDistance)
 			{
 				observation.id = landmark.id;
